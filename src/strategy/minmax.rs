@@ -11,7 +11,7 @@ pub struct MinMax(pub u8);
 /// Min-Max algorithm
 fn minmax_iter(node: &Configuration, depth: u8, maximizing_player: bool) -> (Option<Movement>, i8) {
     if maximizing_player == node.current_player {
-        return (None, node.skip_play().value());
+        return (None, -node.value());
     } else {
         return (None, node.value());
     };
@@ -44,7 +44,7 @@ fn minmax_iter(node: &Configuration, depth: u8, maximizing_player: bool) -> (Opt
 fn minmax_fonc(node: &Configuration, depth: u8, maximizing_player: bool) -> (Option<Movement>, i8) {
     if depth == 0 || node.movements().next().is_none() {
         if maximizing_player == node.current_player {
-            return (None, node.skip_play().value());
+            return (None, -node.value());
         } else {
             return (None, node.value());
         };
@@ -80,7 +80,7 @@ fn minmax_fonc(node: &Configuration, depth: u8, maximizing_player: bool) -> (Opt
 fn minmax_par(node: &Configuration, depth: u8, maximizing_player: bool) -> (Option<Movement>, i8) {
     if depth == 0 || node.movements().next().is_none() {
         if maximizing_player == node.current_player {
-            return (None, node.skip_play().value());
+            return (None, -node.value());
         } else {
             return (None, node.value());
         };
