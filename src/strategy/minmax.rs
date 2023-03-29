@@ -98,7 +98,7 @@ fn minmax_par(node: &Configuration, depth: u8, maximizing_player: bool) -> (Opti
             .max_by_key(|&(_, value)| value)
             .unwrap();
         return (Some(best_child), best_value);
-    } else {
+    }
         let (best_child, best_value) = movements
             .into_par_iter()
             .map(|child| {
@@ -110,7 +110,6 @@ fn minmax_par(node: &Configuration, depth: u8, maximizing_player: bool) -> (Opti
             .min_by_key(|&(_, value)| value)
             .unwrap();
         return (Some(best_child), best_value);
-    }
 }
 
 impl Strategy for MinMax {
@@ -131,9 +130,7 @@ impl fmt::Display for MinMax {
 /// This function is intended to be called from blobwar_iterative_deepening.
 pub fn min_max_anytime(state: &Configuration) {
     let mut movement = AtomicMove::connect().expect("failed connecting to shmem");
-    println!("-----------------------------------");
     for depth in 1..100 {
         movement.store(MinMax(depth).compute_next_move(state));
-        println!("depth: {}", depth);
     }
 }
