@@ -12,6 +12,61 @@ use std::sync::Mutex;
 /// Alpha - Beta algorithm with given maximum number of recursions.
 pub struct AlphaBeta(pub u8);
 
+fn alpha_beta_par(
+    node: &Configuration,
+    depth: u8,
+    alpha: i8,
+    beta: i8,
+    maximizing_player: bool,
+) -> (Option<Movement>, i8) {
+    if depth == 0 || node.movements().next().is_none() {
+        if maximizing_player == node.current_player {
+            return (None, -node.value());
+        } else {
+            return (None, node.value());
+        };
+    }
+
+    let movements: Vec<Movement> = node.movements().collect();
+
+    if maximizing_player == node.current_player {
+        movements
+            .into_par_iter()
+            .map_init(|| (i8::MIN, i8::MAX), |(local_alpha, _), child| {
+                let (_, value) = alpha_beta_par(&node.play(&child), depth - 1, *local_alpha, beta, maximizing_player);
+                if value > *local_alpha {
+                    *local_alpha = value;
+                }
+                (Some(child.clone()), value)
+            })
+            .reduce_with(|(child1, value1), (child2, value2)| {
+                if value1 > value2 {
+                    (child1, value1)
+                } else {
+                    (child2, value2)
+                }
+            })
+            .unwrap_or((None, i8::MIN))
+    } else {
+        movements
+            .into_par_iter()
+            .map_init(|| (i8::MIN, i8::MAX), |(_, local_beta), child| {
+                let (_, value) = alpha_beta_par(&node.play(&child), depth - 1, alpha, *local_beta, maximizing_player);
+                if value < *local_beta {
+                    *local_beta = value;
+                }
+                (Some(child.clone()), value)
+            })
+            .reduce_with(|(child1, value1), (child2, value2)| {
+                if value1 < value2 {
+                    (child1, value1)
+                } else {
+                    (child2, value2)
+                }
+            })
+            .unwrap_or((None, i8::MAX))
+    }
+}
 
 fn alpha_beta(
     node: &Configuration,
@@ -108,7 +163,7 @@ fn alpha_beta_fonc(
 
 impl Strategy for AlphaBeta {
     fn compute_next_move(&mut self, state: &Configuration) -> Option<Movement> {
-        alpha_beta_fonc(state, self.0 - 1, i8::MAX, i8::MIN, state.current_player).0
+        alpha_beta_par(state, self.0 - 1, i8::MAX, i8::MIN, state.current_player).0
     }
 }
 
